@@ -1,0 +1,40 @@
+{
+  "sampleData": {
+    "d77c0600-82d8-4a74-84d6-609399ef8918": {
+      "vars-overview": "sample_data/java_3.dwl",
+      "vars-rootMessage": "sample_data/message.dwl",
+      "payload": "sample_data/defaultstringtype_4.dwl"
+    },
+    "7ebf5bed-c032-41bb-8176-9c1db9c4a318": {
+      "vars-overview": "sample_data/java_2.dwl",
+      "payload": "sample_data/defaultstringtype_2.dwl"
+    },
+    "42b35754-8dc3-40a2-b1a9-1b46a31752aa": {
+      "vars-overview": "sample_data/defaultstringtype_3.dwl",
+      "payload": "sample_data/java.dwl"
+    },
+    "cf3a6575-c121-4460-91b5-f431a8d93a02": {
+      "payload": "sample_data/defaultstringtype.dwl"
+    },
+    "5e17085d-4f0d-41ed-a7d4-24ac4edfe242": {
+      "vars-top250": "sample_data/java_1.dwl",
+      "vars-overview": "sample_data/defaultnulltype.dwl"
+    },
+    "f414b915-dd04-437e-a791-4111112f6660": {
+      "payload": "sample_data/defaultstringtype_1.dwl"
+    },
+    "59777d37-cef4-41d1-8030-fc2cd141e587": {
+      "payload": "sample_data/java_4.dwl"
+    },
+    "8a83800f-c5a8-44da-ae73-368ddf360cb4": {
+      "payload": "sample_data/java_5.dwl"
+    },
+    "11597d9d-9638-42ff-9ae3-3c578f730a26": {
+      "vars-rootMessage": "sample_data/Message_1.dwl"
+    },
+    "3a3cb65f-cf4d-43eb-94e4-293c4ea18b71": {
+      "vars-counter": "sample_data/defaultnumbertype.dwl",
+      "payload": "sample_data/java_6.dwl"
+    }
+  }
+}

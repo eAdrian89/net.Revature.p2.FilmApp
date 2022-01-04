@@ -1,0 +1,164 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:json="http://www.mulesoft.org/schema/mule/json"
+	xmlns:db="http://www.mulesoft.org/schema/mule/db" xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core"
+	xmlns:http="http://www.mulesoft.org/schema/mule/http"
+	xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="
+http://www.mulesoft.org/schema/mule/json http://www.mulesoft.org/schema/mule/json/current/mule-json.xsd http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd
+http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd
+http://www.mulesoft.org/schema/mule/db http://www.mulesoft.org/schema/mule/db/current/mule-db.xsd">
+	<http:listener-config name="HTTP_Listener_config" doc:name="HTTP Listener config" doc:id="951e58cf-062f-4a94-8fdd-99765c1f5b2c" >
+		<http:listener-connection host="0.0.0.0" port="8081" />
+	</http:listener-config>
+	<http:request-config name="HTTP_Request_configuration" doc:name="HTTP Request configuration" doc:id="17b59185-731d-4d0c-aaf1-907aa75de926" >
+		<http:request-connection host="imdb-api.com"/>
+	</http:request-config>
+	<http:request-config name="HTTP_Request_configuration1" doc:name="HTTP Request configuration" doc:id="58dce420-2ca8-42b7-8d25-a477f74966ed" >
+		<http:request-connection host="imdb-api.com" />
+	</http:request-config>
+	<http:request-config name="HTTP_Request_configuration3" doc:name="HTTP Request configuration" doc:id="ae21dcce-cf81-4279-b6f6-0ef5d94bc895" >
+		<http:request-connection host="api.themoviedb.org/3/find/" />
+	</http:request-config>
+	<flow name="mymovies-rest-api-mule-appFlow" doc:id="f80677ce-56eb-4397-bf96-9c94ac488404" >
+		<http:listener doc:name="GET /  -&gt; entry point to Start the Flow " doc:id="8409d6d9-c773-4d81-9ad8-5bd393140baf" config-ref="HTTP_Listener_config" path="/overview"/>
+		<http:request method="GET" doc:name="Request to download data from previous flow" doc:id="1bff4d57-6efe-4969-a053-cc25a537203c" url="http://p2-movies.us-e2.cloudhub.io/movies" responseTimeout="5000"/>
+		<flow-ref doc:name="add Overview flow" doc:id="6a81c32d-4e2a-4180-a0d5-d5791a86300f" name="addOverview"/>
+		<ee:transform doc:name="Change output to JSON" doc:id="888dce6a-1edf-4957-82f5-9e7a3e191e9d" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+payload]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+	</flow>
+	<sub-flow name="addOverview" doc:id="be6b070c-ed57-48af-92d1-825e584343a7" >
+		<ee:transform doc:name="Transform Message" doc:id="b99e11fd-2592-44d1-ab3a-30f457fe9d5b" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/java
+---
+payload[0]]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+		<logger level="INFO" doc:name="Logger" doc:id="768611bd-4054-4032-a831-cca572f634f7" message="#[payload]" />
+		<set-variable value="#[[]]" doc:name="Set Final Array" doc:id="994e0bf7-7234-4cbd-918c-210473c46322" variableName="outputList"/>
+		<foreach doc:name="For Each" doc:id="1fb74ee7-52a6-4701-99cc-a114f7451e6c" collection="#[payload]">
+			<choice doc:name="Choice" doc:id="307ec7df-51e3-4e08-83ad-c81e4dbf2e58" >
+				<when expression="#[dw::Core::entriesOf(payload)]" doc:id="3a3cb65f-cf4d-43eb-94e4-293c4ea18b71">
+					<set-variable value="#[message.payload]" doc:name="Set Data as Vars" doc:id="4df78bdd-e0b8-4119-a13a-43dafe806e38" variableName="top250info" />
+					<set-variable doc:name="Set Variable" doc:id="734503fb-7831-4363-a454-c07dc1fb5ec7" variableName="id" value="#[message.payload.id]"/>
+					<logger level="INFO" doc:name="Logger" doc:id="7aff7a57-d353-4a4e-bb50-aea50e5f294e" message="#[vars.id]" />
+					<http:request method="GET" doc:name="Request" doc:id="860deded-c2f6-4bb9-ac67-f043efc5da33" config-ref="HTTP_Request_configuration3" path="#[vars.id  ++ '?api_key=3c9551c2fa4fb15f18696ce319393294&amp;language=en-US&amp;external_source=imdb_id']" />
+					<logger level="INFO" doc:name="Logger" doc:id="f772eaf8-4a5c-49a5-b95f-1dfc755c0364" message="#[payload]" />
+					<ee:transform doc:name="Transform Message" doc:id="bea7d167-8b19-49d9-8dc7-40a75fcd1831" >
+						<ee:message >
+							<ee:set-payload ><![CDATA[%dw 2.0
+output application/java
+---
+payload.movie_results.overview]]></ee:set-payload>
+						</ee:message>
+					</ee:transform>
+					<logger level="INFO" doc:name="Logger" doc:id="d9eb1102-8e6e-4395-b91c-1efa14438992" message="#[message.payload]"/>
+					<set-variable value="#[message.payload[0]]" doc:name="Set Variable" doc:id="2fe9768c-694c-4ea7-a400-3056fc5ee057" variableName="overviewMovie"/>
+					<ee:transform doc:name="Transform Message" doc:id="11597d9d-9638-42ff-9ae3-3c578f730a26">
+						<ee:message>
+							<ee:set-payload><![CDATA[%dw 2.0
+output application/json
+var object1 = vars.rootMessage
+var object2 = {
+	overview: vars.overviewMovie
+}
+---
+object1 ++ object2 ]]></ee:set-payload>
+						</ee:message>
+					</ee:transform>
+					<ee:transform doc:name="Transform Message" doc:id="5f63f907-214f-4850-9505-a272b790cb7c" >
+						<ee:message >
+							<ee:set-payload ><![CDATA[%dw 2.0
+output application/java
+---
+vars.outputList + payload]]></ee:set-payload>
+						</ee:message>
+					</ee:transform>
+				</when>
+			</choice>
+			<ee:transform doc:name="Transform Message" doc:id="4a280ffe-bcc4-4b00-8986-a3de3edc8c1a">
+						<ee:message>
+							<ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+vars.newList]]></ee:set-payload>
+						</ee:message>
+					</ee:transform>
+		</foreach>
+	</sub-flow>
+	<sub-flow name="addReview" doc:id="8fef3746-ba30-4c20-97d1-1e7883e5e47c">
+	<ee:transform doc:name="Transform Message" doc:id="1c4ec31f-8c12-4526-8cc1-28eba0829cbf">
+			<ee:message>
+				<ee:set-payload><![CDATA[%dw 2.0
+output application/java
+---
+payload[0]]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+		<set-variable value="#[[]]" doc:name="Init new list" doc:id="11d7831f-f9e4-4bee-8789-011e72d99006" variableName="newList" />
+		<foreach doc:name="For Each" doc:id="ea085938-0457-41ea-bcfe-917cb33634e3" collection="#[payload]">
+			<choice doc:name="Choice" doc:id="ecd5486f-6c3c-4702-acd9-20420b923b45">
+				<when expression="#[vars.counter &lt; 4]">
+					<set-variable value="#[message.payload]" doc:name="Set payload as var" doc:id="505dedf6-b1fd-4074-a8bb-0a3f810923e1" variableName="top250" />
+					<set-variable value="#[message.payload.id]" doc:name="Set ID" doc:id="f48a4ae9-c2e2-4ac5-b223-ced404600964" variableName="id" />
+					<logger level="INFO" doc:name="Logger" doc:id="754d29bc-2334-4bed-98b5-4358d82f153d" message="#[vars.id]" />
+					<http:request method="GET" doc:name="Request The Movie DB Review" doc:id="8214b81b-5db5-41e0-9b75-db7dc3ddccad" config-ref="HTTP_Request_configuration3" path="#[vars.id  ++ '?api_key=3c9551c2fa4fb15f18696ce319393294&amp;language=en-US&amp;external_source=imdb_id']" target="overview" />
+					<logger level="INFO" doc:name="Logger" doc:id="667a306e-dc9d-41c2-a513-e0dbced24607" message="#[payload]" />
+					<ee:transform doc:name="Transform Message" doc:id="409c999f-9a31-4cac-8c25-ece87c5d39dd">
+						<ee:message>
+							<ee:set-payload><![CDATA[
+output application/json
+
+---
+payload.movie_results.overview[0]]]></ee:set-payload>
+						</ee:message>
+					</ee:transform>
+					<logger level="INFO" doc:name="Logger" doc:id="05840d20-e8f2-4b7f-a8ff-835b504fe1d2" message="#[vars.overview]" />
+					<set-variable value="#[output application/java&#10;&#10;---&#10;&#10;{&#10;&#10;&#10;&#10;}]" doc:name="Set Variable" doc:id="e01f1808-a9a9-45a1-8f31-ac5ca621e8fe" variableName="overview" />
+					<logger level="INFO" doc:name="Logger" doc:id="20aa5fd3-0c69-477c-bb55-9016c7a9f633" message="#[vars.overview]" />
+					
+					<ee:transform doc:name="Add Overwiew to Movie" doc:id="9a734ad0-11da-46dd-84b3-95a7596af54e">
+			<ee:message>
+				<ee:set-payload><![CDATA[%dw 2.0
+output application/json
+var object1 = vars.top250
+var object2 = {
+	overview: vars.overview
+}
+---
+object1 ++ object2 
+//wait 1000]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+					<ee:transform doc:name="Add Movie to newList" doc:id="35897e84-dfe4-42d9-aea4-492f08a8559f">
+						<ee:message>
+						</ee:message>
+						<ee:variables>
+							<ee:set-variable variableName="newList"><![CDATA[%dw 2.0
+output application/java
+---
+vars.newList + payload]]></ee:set-variable>
+						</ee:variables>
+					</ee:transform>
+				</when>
+			</choice>
+		</foreach>
+		<logger level="INFO" doc:name="Log newList" doc:id="5ed9eb70-f3db-42de-9c79-847e90b7aedc" message="#[vars.newList]" />
+		<ee:transform doc:name="Change output to newList" doc:id="dde03f0b-7e30-48c3-a8f0-540477fb6b58">
+				<ee:message>
+					<ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+vars.newList]]></ee:set-payload>
+				</ee:message>
+			</ee:transform>
+	</sub-flow>
+</mule>
